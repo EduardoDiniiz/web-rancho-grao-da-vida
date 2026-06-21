@@ -46,6 +46,7 @@ export function AnimaisPage() {
   const [loading, setLoading] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState<AnimalErrors>({});
   const [saving, setSaving] = useState(false);
@@ -73,7 +74,24 @@ export function AnimaisPage() {
   }
 
   function openCreate() {
+    setEditingId(null);
     setForm(EMPTY);
+    setErrors({});
+    setModalOpen(true);
+  }
+
+  function openEdit(a: Animal) {
+    setEditingId(a.id);
+    setForm({
+      clienteId: String(a.clienteId),
+      nome: a.nome,
+      dataNascimento: a.dataNascimento ?? '',
+      sexo: a.sexo ?? '',
+      esporte: a.esporte ?? '',
+      registro: a.registro ?? '',
+      enfermidades: a.enfermidades ?? '',
+      observacoes: a.observacoes ?? '',
+    });
     setErrors({});
     setModalOpen(true);
   }
@@ -93,7 +111,7 @@ export function AnimaisPage() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await api.post('/animais', {
+      const payload = {
         clienteId: Number(form.clienteId),
         nome: form.nome,
         dataNascimento: form.dataNascimento || null,
@@ -102,7 +120,9 @@ export function AnimaisPage() {
         registro: form.registro || null,
         enfermidades: form.enfermidades || null,
         observacoes: form.observacoes || null,
-      });
+      };
+      if (editingId) await api.put(`/animais/${editingId}`, payload);
+      else await api.post('/animais', payload);
       setModalOpen(false);
       load();
     } catch (err: any) {
@@ -122,6 +142,14 @@ export function AnimaisPage() {
     {
       key: 'status', label: 'Status',
       render: (a) => <Badge label={label(a.status)} variant={a.status === 'ATIVO' ? 'success' : 'neutral'} />,
+    },
+    {
+      key: 'actions', label: 'Ações',
+      render: (a) => (
+        <div className="row-actions">
+          <button className="btn-sm" onClick={(e) => { e.stopPropagation(); openEdit(a); }}>Editar</button>
+        </div>
+      ),
     },
   ];
 
@@ -152,7 +180,7 @@ export function AnimaisPage() {
         </>
       )}
 
-      <Modal open={modalOpen} title="Novo Animal" onClose={() => setModalOpen(false)}
+      <Modal open={modalOpen} title={editingId ? 'Editar Animal' : 'Novo Animal'} onClose={() => setModalOpen(false)}
         footer={
           <>
             <button className="modal__btn modal__btn--cancel" onClick={() => setModalOpen(false)}>Cancelar</button>

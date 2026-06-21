@@ -69,6 +69,32 @@
   border-color: var(--primary); background: var(--surface);
 }
 
+.login-card__password {
+  position: relative;
+  display: flex;
+}
+
+.login-card__password input {
+  flex: 1;
+  padding-right: 44px;
+}
+
+.login-card__password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  color: var(--text-secondary);
+  border-radius: 0 10px 10px 0;
+}
+
+.login-card__password-toggle:hover { color: var(--primary-dark); }
+
 .login-card__btn {
   padding: 13px;
   background: var(--primary);

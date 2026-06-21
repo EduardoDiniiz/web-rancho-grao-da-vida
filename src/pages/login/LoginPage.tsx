@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cross } from 'lucide-react';
+import { Cross, Eye, EyeOff } from 'lucide-react';
 import api from '../../services/api';
 import type { AuthResponse } from '../../types';
 import './LoginPage.css';
@@ -9,6 +9,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -55,14 +56,25 @@ export function LoginPage() {
 
           <div className="login-card__field">
             <label>Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              autoComplete="current-password"
-              required
-            />
+            <div className="login-card__password">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="login-card__password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="login-card__btn" disabled={loading}>

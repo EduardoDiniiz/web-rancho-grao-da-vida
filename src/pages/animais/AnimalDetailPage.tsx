@@ -9,6 +9,7 @@ import api from '../../services/api';
 import type { Animal, AnimalServico, Servico, Vacina, PageResponse } from '../../types';
 import { formatCurrency, formatDate, label } from '../../utils/format';
 import { required, validatePositiveNumber, fieldErrorsFromApi } from '../../utils/validators';
+import { ChevronLeft } from 'lucide-react';
 import './AnimalDetailPage.css';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -158,7 +159,7 @@ export function AnimalDetailPage() {
 
   return (
     <div>
-      <button className="detail__back" onClick={() => navigate('/animais')}>← Voltar</button>
+      <button className="detail__back" onClick={() => navigate('/animais')}><ChevronLeft size={16} /> Voltar</button>
       <PageHeader title={animal.nome} subtitle={`Proprietário: ${animal.clienteNome}`}
         action={{ label: animal.status === 'ATIVO' ? 'Arquivar' : 'Reativar', onClick: toggleArchive }} />
 

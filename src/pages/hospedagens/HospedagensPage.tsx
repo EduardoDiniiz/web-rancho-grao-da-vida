@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField } from '../../components/common/InputField';
+import { InputField, SelectField, ButtonGroup } from '../../components/common/InputField';
 import api from '../../services/api';
 import type { Animal, Baia, Hospedagem, PageResponse } from '../../types';
 import { formatDate, label } from '../../utils/format';
@@ -11,6 +11,12 @@ import { required, fieldErrorsFromApi } from '../../utils/validators';
 import '../list.css';
 
 type HospErrors = Partial<Record<'animalId' | 'baiaId' | 'dataEntrada', string>>;
+
+const STATUS_FILTER_OPTS = [
+  { value: '', label: 'Todas' },
+  { value: 'ATIVO', label: 'Ativas' },
+  { value: 'ENCERRADO', label: 'Encerradas' },
+];
 
 export function HospedagensPage() {
   const [hospedagens, setHospedagens] = useState<Hospedagem[]>([]);
@@ -110,11 +116,8 @@ export function HospedagensPage() {
         action={{ label: 'Registrar Entrada', onClick: openCreate }} />
 
       <div className="list-toolbar">
-        <select className="list-filter" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}>
-          <option value="">Todas</option>
-          <option value="ATIVO">Ativas</option>
-          <option value="ENCERRADO">Encerradas</option>
-        </select>
+        <ButtonGroup value={statusFilter} options={STATUS_FILTER_OPTS}
+          onChange={(v) => { setStatusFilter(v); setPage(0); }} />
       </div>
 
       {loading ? <div className="list-loading">Carregando...</div> : (

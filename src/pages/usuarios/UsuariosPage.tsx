@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField } from '../../components/common/InputField';
+import { InputField, ButtonGroupField } from '../../components/common/InputField';
 import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { User, PageResponse } from '../../types';
@@ -146,8 +146,8 @@ export function UsuariosPage() {
             <InputField label="Senha *" type="password" value={form.password} error={errors.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mínimo 6 caracteres" />
           )}
-          <SelectField label="Perfil" value={form.role} options={ROLE_OPTS} placeholder="Selecione..."
-            onChange={(e) => setForm({ ...form, role: e.target.value })} />
+          <ButtonGroupField label="Perfil" value={form.role} options={ROLE_OPTS}
+            onChange={(v) => setForm({ ...form, role: v })} />
         </FormRow>
       </Modal>
     </div>

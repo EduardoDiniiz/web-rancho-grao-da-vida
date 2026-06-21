@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge, type BadgeVariant } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField, TextareaField } from '../../components/common/InputField';
+import { InputField, TextareaField, ButtonGroup, ButtonGroupField } from '../../components/common/InputField';
 import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Baia, PageResponse } from '../../types';
@@ -18,6 +18,7 @@ const STATUS_OPTS = [
   { value: 'OCUPADA', label: 'Ocupada' },
   { value: 'MANUTENCAO', label: 'Manutenção' },
 ];
+const STATUS_FILTER_OPTS = [{ value: '', label: 'Todas' }, ...STATUS_OPTS];
 const statusVariant: Record<string, BadgeVariant> = { LIVRE: 'success', OCUPADA: 'info', MANUTENCAO: 'warning' };
 const EMPTY = { identificacao: '', localizacao: '', capacidade: '1', status: 'LIVRE', observacao: '' };
 
@@ -119,10 +120,8 @@ export function BaiasPage() {
         action={{ label: 'Nova Baia', onClick: openCreate }} />
 
       <div className="list-toolbar">
-        <select className="list-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">Todas</option>
-          {STATUS_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <ButtonGroup value={statusFilter} options={STATUS_FILTER_OPTS}
+          onChange={(v) => setStatusFilter(v)} />
       </div>
 
       {loading ? <div className="list-loading">Carregando...</div> : (
@@ -144,12 +143,10 @@ export function BaiasPage() {
           <InputField label="Capacidade" type="number" min={1} value={form.capacidade} error={errors.capacidade}
             onChange={(e) => setForm({ ...form, capacidade: e.target.value })} />
         </FormRow>
-        <FormRow>
-          <InputField label="Localização" value={form.localizacao}
-            onChange={(e) => setForm({ ...form, localizacao: e.target.value })} />
-          <SelectField label="Status" value={form.status} options={STATUS_OPTS} placeholder="Selecione..."
-            onChange={(e) => setForm({ ...form, status: e.target.value })} />
-        </FormRow>
+        <InputField label="Localização" value={form.localizacao}
+          onChange={(e) => setForm({ ...form, localizacao: e.target.value })} />
+        <ButtonGroupField label="Status" value={form.status} options={STATUS_OPTS}
+          onChange={(v) => setForm({ ...form, status: v })} />
         <TextareaField label="Observação" value={form.observacao}
           onChange={(e) => setForm({ ...form, observacao: e.target.value })} />
       </Modal>

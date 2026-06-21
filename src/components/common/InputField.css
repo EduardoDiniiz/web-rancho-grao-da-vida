@@ -43,3 +43,38 @@
 .input-field__input::placeholder {
   color: var(--text-secondary);
 }
+
+/* ===== Grupo de botoes de selecao ===== */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-group__btn {
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-group__btn:hover {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.btn-group__btn--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn-group__btn--active:hover {
+  background: var(--primary-dark);
+  color: #fff;
+}

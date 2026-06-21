@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge, type BadgeVariant } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField } from '../../components/common/InputField';
+import { InputField, SelectField, ButtonGroup } from '../../components/common/InputField';
 import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Animal, Pagamento, PageResponse } from '../../types';
@@ -12,6 +12,14 @@ import { required, validatePositiveNumber, fieldErrorsFromApi } from '../../util
 import '../list.css';
 
 type AvulsaErrors = Partial<Record<'descricao' | 'valor' | 'vencimento', string>>;
+
+const STATUS_FILTER_OPTS = [
+  { value: '', label: 'Todos' },
+  { value: 'PENDENTE', label: 'Pendentes' },
+  { value: 'ATRASADO', label: 'Atrasados' },
+  { value: 'PAGO', label: 'Pagos' },
+  { value: 'CANCELADO', label: 'Cancelados' },
+];
 
 const statusVariant: Record<string, BadgeVariant> = {
   PENDENTE: 'warning', PAGO: 'success', ATRASADO: 'error', CANCELADO: 'neutral',
@@ -151,13 +159,8 @@ export function FinanceiroPage() {
         action={{ label: 'Cobrança Avulsa', onClick: openAvulsa }} />
 
       <div className="list-toolbar">
-        <select className="list-filter" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}>
-          <option value="">Todos os status</option>
-          <option value="PENDENTE">Pendentes</option>
-          <option value="ATRASADO">Atrasados</option>
-          <option value="PAGO">Pagos</option>
-          <option value="CANCELADO">Cancelados</option>
-        </select>
+        <ButtonGroup value={statusFilter} options={STATUS_FILTER_OPTS}
+          onChange={(v) => { setStatusFilter(v); setPage(0); }} />
       </div>
 
       {loading ? <div className="list-loading">Carregando...</div> : (

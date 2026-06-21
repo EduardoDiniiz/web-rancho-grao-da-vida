@@ -1,6 +1,9 @@
 .detail__loading { text-align: center; padding: 60px; color: var(--text-secondary); }
 
 .detail__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: none;
   color: var(--text-secondary);
   font-size: 14px;

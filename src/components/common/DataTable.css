@@ -1,8 +1,9 @@
 .data-table__wrapper {
   overflow-x: auto;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 2px rgba(31, 36, 33, 0.04), 0 4px 16px rgba(31, 36, 33, 0.06);
 }
 
 .data-table {
@@ -12,68 +13,98 @@
 
 .data-table th {
   text-align: left;
-  padding: 14px 16px;
-  font-size: 12px;
+  padding: 14px 18px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
+.data-table th:first-child { border-top-left-radius: var(--radius-lg); }
+.data-table th:last-child { border-top-right-radius: var(--radius-lg); }
+
 .data-table td {
-  padding: 14px 16px;
+  padding: 15px 18px;
   font-size: 14px;
   color: var(--text);
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.data-table tbody tr {
+  transition: background 0.12s ease;
 }
 
 .data-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.data-table__row--clickable {
-  cursor: pointer;
-  transition: background 0.15s;
+.data-table tbody tr:hover {
+  background: var(--primary-light);
 }
 
-.data-table__row--clickable:hover {
-  background: var(--bg);
+.data-table__row--clickable {
+  cursor: pointer;
 }
 
 .data-table__empty {
   text-align: center;
-  padding: 60px 24px;
+  padding: 56px 24px;
   color: var(--text-secondary);
   font-size: 14px;
   background: var(--surface);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
 }
 
-/* Mobile: card view */
+.data-table__empty p { margin: 0; }
+
+/* Mobile: cada linha vira um card */
 @media (max-width: 768px) {
+  .data-table__wrapper {
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
   .data-table thead { display: none; }
-  .data-table, .data-table tbody, .data-table tr, .data-table td {
+  .data-table, .data-table tbody {
     display: block;
   }
   .data-table tr {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(31, 36, 33, 0.06);
+    padding: 14px 16px;
+    margin-bottom: 12px;
   }
+  .data-table tr:last-child { margin-bottom: 0; }
+  .data-table tbody tr:hover { background: var(--surface); }
+  .data-table__row--clickable:active { background: var(--bg); }
+
   .data-table td {
-    padding: 4px 0;
-    border-bottom: none;
-    font-size: 13px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
   }
+  .data-table td:last-child { border-bottom: none; padding-bottom: 0; }
+  .data-table td:first-child { padding-top: 0; }
   .data-table td::before {
     content: attr(data-label);
     font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
+    letter-spacing: 0.4px;
   }
 }

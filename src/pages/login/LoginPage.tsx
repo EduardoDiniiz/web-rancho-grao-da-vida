@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Cross } from 'lucide-react';
 import api from '../../services/api';
 import type { AuthResponse } from '../../types';
 import './LoginPage.css';
@@ -32,8 +33,8 @@ export function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-card__header">
-          <div className="login-card__logo">🐎</div>
-          <h1 className="login-card__title">Rancho</h1>
+          <div className="login-card__logo"><Cross size={32} color="var(--primary)" /></div>
+          <h1 className="login-card__title">Grão da Vida</h1>
           <p className="login-card__subtitle">Gestão de Baias para Cavalos</p>
         </div>
 

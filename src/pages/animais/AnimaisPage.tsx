@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField, TextareaField } from '../../components/common/InputField';
+import { InputField, SelectField, TextareaField, ButtonGroup, ButtonGroupField } from '../../components/common/InputField';
 import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Animal, Cliente, PageResponse } from '../../types';
@@ -22,6 +22,11 @@ const ESPORTE_OPTS = [
   { value: 'HIPISMO', label: 'Hipismo' },
   { value: 'CORRIDA', label: 'Corrida' },
   { value: 'OUTRO', label: 'Outro' },
+];
+const STATUS_FILTER_OPTS = [
+  { value: '', label: 'Todos' },
+  { value: 'ATIVO', label: 'Ativos' },
+  { value: 'ARQUIVADO', label: 'Arquivados' },
 ];
 
 const EMPTY = {
@@ -128,11 +133,8 @@ export function AnimaisPage() {
       <div className="list-toolbar">
         <input className="list-search" placeholder="Buscar por nome ou registro..."
           value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
-        <select className="list-filter" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}>
-          <option value="">Todos</option>
-          <option value="ATIVO">Ativos</option>
-          <option value="ARQUIVADO">Arquivados</option>
-        </select>
+        <ButtonGroup value={statusFilter} options={STATUS_FILTER_OPTS}
+          onChange={(v) => { setStatusFilter(v); setPage(0); }} />
       </div>
 
       {loading ? <div className="list-loading">Carregando...</div> : (
@@ -164,12 +166,10 @@ export function AnimaisPage() {
           options={clientes.map((c) => ({ value: String(c.id), label: c.nome }))} />
         <InputField label="Nome *" value={form.nome} error={errors.nome}
           onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-        <FormRow>
-          <SelectField label="Sexo" value={form.sexo} options={SEXO_OPTS}
-            onChange={(e) => setForm({ ...form, sexo: e.target.value })} />
-          <SelectField label="Esporte" value={form.esporte} options={ESPORTE_OPTS}
-            onChange={(e) => setForm({ ...form, esporte: e.target.value })} />
-        </FormRow>
+        <ButtonGroupField label="Sexo" value={form.sexo} options={SEXO_OPTS} clearable
+          onChange={(v) => setForm({ ...form, sexo: v })} />
+        <ButtonGroupField label="Esporte" value={form.esporte} options={ESPORTE_OPTS} clearable
+          onChange={(v) => setForm({ ...form, esporte: v })} />
         <FormRow>
           <InputField label="Data de Nascimento" type="date" value={form.dataNascimento} max={TODAY} error={errors.dataNascimento}
             onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} />

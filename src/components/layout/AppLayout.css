@@ -22,15 +22,10 @@
 .app-layout__brand {
   font-size: 16px;
   font-weight: 600;
-}
-
-.app-layout__menu-btn {
-  width: 36px; height: 36px; background: none;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-}
-
-.app-layout__menu-btn span {
-  width: 20px; height: 2px; background: var(--text); border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-dark);
 }
 
 .app-layout__content {
@@ -43,5 +38,9 @@
 @media (max-width: 768px) {
   .app-layout__main { margin-left: 0; }
   .app-layout__header { display: flex; }
-  .app-layout__content { padding: 16px; }
+  /* espaco para a bottom nav fixa (altura + safe-area do iOS) */
+  .app-layout__content {
+    padding: 16px;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
 }

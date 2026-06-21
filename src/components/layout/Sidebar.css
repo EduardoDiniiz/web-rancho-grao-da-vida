@@ -61,7 +61,7 @@
 }
 
 .sidebar__icon {
-  font-size: 18px; width: 24px; text-align: center;
+  width: 22px; height: 22px; flex-shrink: 0;
 }
 
 .sidebar__footer {

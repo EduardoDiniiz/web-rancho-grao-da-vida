@@ -1,0 +1,86 @@
+.list-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.list-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.list-search:focus { border-color: var(--primary); }
+
+.list-filter {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.list-loading,
+.list-error {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.list-error {
+  background: #C5303014;
+  color: var(--error);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.list-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; margin-top: 16px; font-size: 14px;
+}
+
+.list-pagination button {
+  padding: 8px 16px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text);
+  transition: all 0.15s;
+}
+
+.list-pagination button:hover:not(:disabled) {
+  background: var(--primary-light); color: var(--primary-dark); border-color: var(--primary);
+}
+
+.list-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.list-pagination span { color: var(--text-secondary); font-size: 13px; }
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: all 0.15s;
+}
+
+.btn-sm:hover { background: var(--bg); }
+.btn-sm--primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-sm--primary:hover { background: var(--primary-dark); }
+.btn-sm--danger { color: var(--error); border-color: #C5303040; }
+.btn-sm--danger:hover { background: #C5303014; }

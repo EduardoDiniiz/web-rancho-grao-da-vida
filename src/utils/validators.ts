@@ -2,7 +2,7 @@
 // (string) ou `undefined` quando o valor e valido. Campos opcionais vazios
 // retornam `undefined` - combine com `required` quando obrigatorio.
 
-import { onlyDigits } from './masks';
+import { onlyDigits, parseCurrency } from './masks';
 
 export function required(value: string | null | undefined, label = 'Campo'): string | undefined {
   return value != null && String(value).trim() !== '' ? undefined : `${label} e obrigatorio.`;
@@ -57,6 +57,12 @@ export function validatePositiveNumber(value: string, label = 'Valor'): string |
   const n = Number(value);
   if (Number.isNaN(n)) return `${label} invalido.`;
   return n > 0 ? undefined : `${label} deve ser maior que zero.`;
+}
+
+/** Valida um campo de valor monetario mascarado ("1.234,56"). */
+export function validatePositiveCurrency(value: string, label = 'Valor'): string | undefined {
+  if (!value || !value.trim()) return `${label} e obrigatorio.`;
+  return parseCurrency(value) > 0 ? undefined : `${label} deve ser maior que zero.`;
 }
 
 /** Extrai o mapa de erros por campo de uma resposta de erro da API (400). */

@@ -3,18 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Badge, type BadgeVariant } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { InputField, SelectField, TextareaField } from '../../components/common/InputField';
+import { InputField, TextareaField } from '../../components/common/InputField';
 import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Animal, AnimalServico, Servico, Vacina, PageResponse } from '../../types';
 import { formatCurrency, formatDate, label } from '../../utils/format';
-import { required, validatePositiveNumber, fieldErrorsFromApi } from '../../utils/validators';
+import { required, validatePositiveCurrency, fieldErrorsFromApi } from '../../utils/validators';
+import { maskCurrency, currencyToMask, parseCurrency } from '../../utils/masks';
 import { ChevronLeft } from 'lucide-react';
 import './AnimalDetailPage.css';
 
 const TODAY = new Date().toISOString().slice(0, 10);
 type VacinaErrors = Partial<Record<'nome' | 'dataAplicacao' | 'dataVencimento', string>>;
-type ContratoErrors = Partial<Record<'servicoId' | 'valor' | 'dataInicio' | 'recorrenciaDias', string>>;
+type ContratoErrors = Partial<Record<'servicoNome' | 'valor' | 'dataInicio' | 'recorrenciaDias', string>>;
 
 const vacinaVariant: Record<string, BadgeVariant> = { EM_DIA: 'success', PROXIMA: 'warning', VENCIDA: 'error' };
 const contratoVariant: Record<string, BadgeVariant> = { ATIVO: 'success', SUSPENSO: 'warning', ENCERRADO: 'neutral' };
@@ -33,7 +34,7 @@ export function AnimalDetailPage() {
   const [vacinaErrors, setVacinaErrors] = useState<VacinaErrors>({});
 
   const [contratoModal, setContratoModal] = useState(false);
-  const [contratoForm, setContratoForm] = useState({ servicoId: '', valor: '', dataInicio: '', recorrenciaDias: '30', descricao: '' });
+  const [contratoForm, setContratoForm] = useState({ servicoNome: '', valor: '', dataInicio: '', recorrenciaDias: '30', descricao: '' });
   const [contratoErrors, setContratoErrors] = useState<ContratoErrors>({});
 
   const [saving, setSaving] = useState(false);
@@ -106,20 +107,26 @@ export function AnimalDetailPage() {
   }
 
   function openContrato() {
-    setContratoForm({ servicoId: '', valor: '', dataInicio: new Date().toISOString().slice(0, 10), recorrenciaDias: '30', descricao: '' });
+    setContratoForm({ servicoNome: '', valor: '', dataInicio: new Date().toISOString().slice(0, 10), recorrenciaDias: '30', descricao: '' });
     setContratoErrors({});
     setContratoModal(true);
   }
 
-  function onServicoChange(servicoId: string) {
-    const s = servicos.find((x) => String(x.id) === servicoId);
-    setContratoForm((f) => ({ ...f, servicoId, valor: s ? String(s.valorPadrao) : f.valor }));
+  // Campo aberto: ao digitar um serviço já existente no catálogo, sugere o valor
+  // padrão (apenas se o valor ainda estiver em branco, sem sobrescrever o usuário).
+  function onServicoNomeChange(servicoNome: string) {
+    const s = servicos.find((x) => x.nome.toLowerCase() === servicoNome.trim().toLowerCase());
+    setContratoForm((f) => ({
+      ...f,
+      servicoNome,
+      valor: s && !f.valor ? currencyToMask(s.valorPadrao) : f.valor,
+    }));
   }
 
   function validateContrato(): boolean {
     const e: ContratoErrors = {
-      servicoId: required(contratoForm.servicoId, 'Serviço'),
-      valor: validatePositiveNumber(contratoForm.valor, 'Valor'),
+      servicoNome: required(contratoForm.servicoNome, 'Serviço'),
+      valor: validatePositiveCurrency(contratoForm.valor, 'Valor'),
       dataInicio: required(contratoForm.dataInicio, 'Data de início'),
       recorrenciaDias: Number(contratoForm.recorrenciaDias) >= 1 ? undefined : 'Recorrência mínima é 1 dia.',
     };
@@ -134,8 +141,8 @@ export function AnimalDetailPage() {
     try {
       await api.post('/animal-servicos', {
         animalId: Number(id),
-        servicoId: Number(contratoForm.servicoId),
-        valor: Number(contratoForm.valor),
+        servicoNome: contratoForm.servicoNome.trim(),
+        valor: parseCurrency(contratoForm.valor),
         dataInicio: contratoForm.dataInicio,
         recorrenciaDias: Number(contratoForm.recorrenciaDias),
         descricao: contratoForm.descricao || null,
@@ -265,12 +272,15 @@ export function AnimalDetailPage() {
             </button>
           </>
         }>
-        <SelectField label="Serviço *" value={contratoForm.servicoId} error={contratoErrors.servicoId}
-          onChange={(e) => onServicoChange(e.target.value)}
-          options={servicos.map((s) => ({ value: String(s.id), label: s.nome }))} />
+        <InputField label="Serviço *" value={contratoForm.servicoNome} error={contratoErrors.servicoNome}
+          list="servicos-sugestoes" placeholder="Digite o serviço"
+          onChange={(e) => onServicoNomeChange(e.target.value)} />
+        <datalist id="servicos-sugestoes">
+          {servicos.map((s) => <option key={s.id} value={s.nome} />)}
+        </datalist>
         <FormRow>
-          <InputField label="Valor (R$) *" type="number" step="0.01" min={0} value={contratoForm.valor} error={contratoErrors.valor}
-            onChange={(e) => setContratoForm({ ...contratoForm, valor: e.target.value })} />
+          <InputField label="Valor (R$) *" inputMode="numeric" placeholder="0,00" value={contratoForm.valor} error={contratoErrors.valor}
+            onChange={(e) => setContratoForm({ ...contratoForm, valor: maskCurrency(e.target.value) })} />
           <InputField label="Recorrência (dias) *" type="number" min={1} value={contratoForm.recorrenciaDias} error={contratoErrors.recorrenciaDias}
             onChange={(e) => setContratoForm({ ...contratoForm, recorrenciaDias: e.target.value })} />
         </FormRow>

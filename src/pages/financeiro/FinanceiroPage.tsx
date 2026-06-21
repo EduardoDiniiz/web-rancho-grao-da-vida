@@ -8,7 +8,8 @@ import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Animal, Pagamento, PageResponse } from '../../types';
 import { formatCurrency, formatDate, label } from '../../utils/format';
-import { required, validatePositiveNumber, fieldErrorsFromApi } from '../../utils/validators';
+import { maskCurrency, parseCurrency } from '../../utils/masks';
+import { required, validatePositiveCurrency, fieldErrorsFromApi } from '../../utils/validators';
 import '../list.css';
 
 type AvulsaErrors = Partial<Record<'descricao' | 'valor' | 'vencimento', string>>;
@@ -98,7 +99,7 @@ export function FinanceiroPage() {
   function validateAvulsa(): boolean {
     const e: AvulsaErrors = {
       descricao: required(avulsa.descricao, 'Descrição'),
-      valor: validatePositiveNumber(avulsa.valor, 'Valor'),
+      valor: validatePositiveCurrency(avulsa.valor, 'Valor'),
       vencimento: required(avulsa.vencimento, 'Vencimento'),
     };
     Object.keys(e).forEach((k) => e[k as keyof AvulsaErrors] === undefined && delete e[k as keyof AvulsaErrors]);
@@ -112,7 +113,7 @@ export function FinanceiroPage() {
     try {
       await api.post('/pagamentos/avulsa', {
         animalId: avulsa.animalId ? Number(avulsa.animalId) : null,
-        descricao: avulsa.descricao, valor: Number(avulsa.valor), vencimento: avulsa.vencimento,
+        descricao: avulsa.descricao, valor: parseCurrency(avulsa.valor), vencimento: avulsa.vencimento,
       });
       setAvulsaModal(false);
       load();
@@ -215,8 +216,8 @@ export function FinanceiroPage() {
         <InputField label="Descrição *" value={avulsa.descricao} error={avulsaErrors.descricao}
           onChange={(e) => setAvulsa({ ...avulsa, descricao: e.target.value })} />
         <FormRow>
-          <InputField label="Valor (R$) *" type="number" step="0.01" min={0} value={avulsa.valor} error={avulsaErrors.valor}
-            onChange={(e) => setAvulsa({ ...avulsa, valor: e.target.value })} />
+          <InputField label="Valor (R$) *" inputMode="numeric" placeholder="0,00" value={avulsa.valor} error={avulsaErrors.valor}
+            onChange={(e) => setAvulsa({ ...avulsa, valor: maskCurrency(e.target.value) })} />
           <InputField label="Vencimento *" type="date" value={avulsa.vencimento} error={avulsaErrors.vencimento}
             onChange={(e) => setAvulsa({ ...avulsa, vencimento: e.target.value })} />
         </FormRow>

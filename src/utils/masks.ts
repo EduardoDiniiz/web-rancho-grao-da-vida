@@ -39,3 +39,29 @@ export function maskPhone(value: string): string {
 export function maskCep(value: string): string {
   return onlyDigits(value).slice(0, 8).replace(/(\d{5})(\d{1,3})$/, '$1-$2');
 }
+
+/**
+ * Mascara de valor monetario (pt-BR). Trata o que foi digitado como centavos,
+ * formatando da direita para a esquerda: "123456" -> "1.234,56".
+ */
+export function maskCurrency(value: string): string {
+  const digits = onlyDigits(value).slice(0, 13); // ate ~9 bilhoes
+  if (!digits) return '';
+  return (Number(digits) / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/** Converte um numero (ou string numerica) para a mascara "1.234,56". */
+export function currencyToMask(value: number | string | null | undefined): string {
+  const n = typeof value === 'string' ? Number(value) : value;
+  if (n == null || Number.isNaN(n)) return '';
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** Converte um valor mascarado ("1.234,56") de volta para number (1234.56). */
+export function parseCurrency(value: string): number {
+  const digits = onlyDigits(value);
+  return digits ? Number(digits) / 100 : 0;
+}

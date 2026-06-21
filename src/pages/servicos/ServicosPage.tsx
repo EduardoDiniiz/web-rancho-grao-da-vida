@@ -7,7 +7,8 @@ import { InputField, TextareaField } from '../../components/common/InputField';
 import api from '../../services/api';
 import type { Servico, PageResponse } from '../../types';
 import { formatCurrency } from '../../utils/format';
-import { required, validatePositiveNumber, fieldErrorsFromApi } from '../../utils/validators';
+import { maskCurrency, currencyToMask, parseCurrency } from '../../utils/masks';
+import { required, validatePositiveCurrency, fieldErrorsFromApi } from '../../utils/validators';
 import '../list.css';
 
 type ServicoErrors = Partial<Record<'nome' | 'valorPadrao', string>>;
@@ -42,7 +43,7 @@ export function ServicosPage() {
   function openCreate() { setEditingId(null); setForm(EMPTY); setErrors({}); setModalOpen(true); }
   function openEdit(s: Servico) {
     setEditingId(s.id);
-    setForm({ nome: s.nome, descricao: s.descricao ?? '', valorPadrao: String(s.valorPadrao) });
+    setForm({ nome: s.nome, descricao: s.descricao ?? '', valorPadrao: currencyToMask(s.valorPadrao) });
     setErrors({});
     setModalOpen(true);
   }
@@ -50,7 +51,7 @@ export function ServicosPage() {
   function validate(): boolean {
     const e: ServicoErrors = {
       nome: required(form.nome, 'Nome'),
-      valorPadrao: validatePositiveNumber(form.valorPadrao, 'Valor'),
+      valorPadrao: validatePositiveCurrency(form.valorPadrao, 'Valor'),
     };
     Object.keys(e).forEach((k) => e[k as keyof ServicoErrors] === undefined && delete e[k as keyof ServicoErrors]);
     setErrors(e);
@@ -61,7 +62,7 @@ export function ServicosPage() {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { nome: form.nome, descricao: form.descricao || null, valorPadrao: Number(form.valorPadrao) };
+      const payload = { nome: form.nome, descricao: form.descricao || null, valorPadrao: parseCurrency(form.valorPadrao) };
       if (editingId) await api.put(`/servicos/${editingId}`, payload);
       else await api.post('/servicos', payload);
       setModalOpen(false);
@@ -119,8 +120,8 @@ export function ServicosPage() {
         }>
         <InputField label="Nome *" value={form.nome} error={errors.nome}
           onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-        <InputField label="Valor padrão (R$) *" type="number" step="0.01" min={0} value={form.valorPadrao} error={errors.valorPadrao}
-          onChange={(e) => setForm({ ...form, valorPadrao: e.target.value })} />
+        <InputField label="Valor padrão (R$) *" inputMode="numeric" placeholder="0,00" value={form.valorPadrao} error={errors.valorPadrao}
+          onChange={(e) => setForm({ ...form, valorPadrao: maskCurrency(e.target.value) })} />
         <TextareaField label="Descrição" value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
       </Modal>

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Warehouse, ClipboardList,
-  Wrench, Wallet, Syringe, UserCog, LogOut, Cross,
+  Wrench, Wallet, Syringe, UserCog, LogOut, Cross, Power,
 } from 'lucide-react';
 import { HorseIcon } from '../icons/HorseIcon';
 import './Sidebar.css';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { path: '/servicos', icon: Wrench, label: 'Serviços' },
   { path: '/financeiro', icon: Wallet, label: 'Financeiro' },
   { path: '/vacinas', icon: Syringe, label: 'Vacinas' },
+  { path: '/dispositivos', icon: Power, label: 'Dispositivos' },
 ];
 
 const ADMIN_ITEMS = [

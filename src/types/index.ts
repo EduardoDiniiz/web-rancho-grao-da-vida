@@ -141,6 +141,23 @@ export interface Pagamento {
   status: PagamentoStatus;
 }
 
+export interface Dispositivo {
+  id: string;
+  nome: string;
+  categoria?: string;
+  online?: boolean;
+  ligado?: boolean;
+  switchCode?: string;
+  horaLigar?: string;
+  horaDesligar?: string;
+  agendamentoAtivo?: boolean;
+}
+
+export interface DispositivosResponse {
+  configured: boolean;
+  dispositivos: Dispositivo[];
+}
+
 export interface DashboardResumo {
   totalAReceber: number;
   totalRecebidoMes: number;

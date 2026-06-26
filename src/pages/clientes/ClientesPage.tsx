@@ -9,11 +9,18 @@ import api from '../../services/api';
 import type { Cliente, PageResponse } from '../../types';
 import { maskCpfCnpj, maskPhone, onlyDigits } from '../../utils/masks';
 import { formatCpfCnpj, formatPhone } from '../../utils/format';
+import { WhatsAppIcon } from '../../components/icons/WhatsAppIcon';
 import { required, validateCpfCnpj, validateEmail, validatePhone, fieldErrorsFromApi } from '../../utils/validators';
 import '../list.css';
 
 const EMPTY = { nome: '', cpfCnpj: '', telefone: '', email: '', endereco: '', observacoes: '' };
 type Errors = Partial<Record<keyof typeof EMPTY, string>>;
+
+// Monta o número para o link wa.me; adiciona o DDI 55 quando não houver código do país.
+function waNumber(telefone: string): string {
+  const d = onlyDigits(telefone);
+  return d.length > 11 ? d : `55${d}`;
+}
 
 export function ClientesPage() {
   const isAdmin = localStorage.getItem('rancho_role') === 'ADMIN';
@@ -113,6 +120,17 @@ export function ClientesPage() {
       key: 'actions', label: 'Ações',
       render: (c) => (
         <div className="row-actions">
+          {c.telefone && (
+            <a
+              className="btn-sm"
+              href={`https://wa.me/${waNumber(c.telefone)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Conversar com ${c.nome} no WhatsApp`}
+            >
+              <WhatsAppIcon size={14} /> WhatsApp
+            </a>
+          )}
           <button className="btn-sm" onClick={() => openEdit(c)}>Editar</button>
           {isAdmin && <button className="btn-sm btn-sm--danger" onClick={() => remove(c)}>Excluir</button>}
         </div>

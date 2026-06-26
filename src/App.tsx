@@ -11,6 +11,7 @@ import { HospedagensPage } from './pages/hospedagens/HospedagensPage';
 import { ServicosPage } from './pages/servicos/ServicosPage';
 import { FinanceiroPage } from './pages/financeiro/FinanceiroPage';
 import { VacinasPage } from './pages/vacinas/VacinasPage';
+import { DispositivosPage } from './pages/dispositivos/DispositivosPage';
 import { UsuariosPage } from './pages/usuarios/UsuariosPage';
 
 function ProtectedRoute({ children, adminOnly }: { children: ReactNode; adminOnly?: boolean }) {
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/servicos" element={<ServicosPage />} />
           <Route path="/financeiro" element={<FinanceiroPage />} />
           <Route path="/vacinas" element={<VacinasPage />} />
+          <Route path="/dispositivos" element={<DispositivosPage />} />
           <Route
             path="/usuarios"
             element={

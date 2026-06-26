@@ -12,12 +12,20 @@ import { VacinaFormPage } from './pages/animais/VacinaFormPage';
 import { ContratoFormPage } from './pages/animais/ContratoFormPage';
 import { ExameFormPage } from './pages/animais/ExameFormPage';
 import { BaiasPage } from './pages/baias/BaiasPage';
+import { BaiaFormPage } from './pages/baias/BaiaFormPage';
 import { HospedagensPage } from './pages/hospedagens/HospedagensPage';
+import { HospedagemFormPage } from './pages/hospedagens/HospedagemFormPage';
 import { ServicosPage } from './pages/servicos/ServicosPage';
+import { ServicoFormPage } from './pages/servicos/ServicoFormPage';
 import { FinanceiroPage } from './pages/financeiro/FinanceiroPage';
+import { CobrancaAvulsaPage } from './pages/financeiro/CobrancaAvulsaPage';
+import { BaixaPage } from './pages/financeiro/BaixaPage';
 import { VacinasPage } from './pages/vacinas/VacinasPage';
 import { DispositivosPage } from './pages/dispositivos/DispositivosPage';
+import { DispositivoNomePage } from './pages/dispositivos/DispositivoNomePage';
+import { DispositivoAgendamentoPage } from './pages/dispositivos/DispositivoAgendamentoPage';
 import { UsuariosPage } from './pages/usuarios/UsuariosPage';
+import { UsuarioFormPage } from './pages/usuarios/UsuarioFormPage';
 
 function ProtectedRoute({ children, adminOnly }: { children: ReactNode; adminOnly?: boolean }) {
   const token = localStorage.getItem('rancho_token');
@@ -52,16 +60,41 @@ export default function App() {
           <Route path="/animais/:id/exames/novo" element={<ExameFormPage />} />
           <Route path="/animais/:id" element={<AnimalDetailPage />} />
           <Route path="/baias" element={<BaiasPage />} />
+          <Route path="/baias/novo" element={<BaiaFormPage />} />
+          <Route path="/baias/:id/editar" element={<BaiaFormPage />} />
           <Route path="/hospedagens" element={<HospedagensPage />} />
+          <Route path="/hospedagens/nova" element={<HospedagemFormPage />} />
           <Route path="/servicos" element={<ServicosPage />} />
+          <Route path="/servicos/novo" element={<ServicoFormPage />} />
+          <Route path="/servicos/:id/editar" element={<ServicoFormPage />} />
           <Route path="/financeiro" element={<FinanceiroPage />} />
+          <Route path="/financeiro/avulsa" element={<CobrancaAvulsaPage />} />
+          <Route path="/financeiro/:id/baixa" element={<BaixaPage />} />
           <Route path="/vacinas" element={<VacinasPage />} />
           <Route path="/dispositivos" element={<DispositivosPage />} />
+          <Route path="/dispositivos/:id/nome" element={<DispositivoNomePage />} />
+          <Route path="/dispositivos/:id/agendamento" element={<DispositivoAgendamentoPage />} />
           <Route
             path="/usuarios"
             element={
               <ProtectedRoute adminOnly>
                 <UsuariosPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usuarios/novo"
+            element={
+              <ProtectedRoute adminOnly>
+                <UsuarioFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usuarios/:id/editar"
+            element={
+              <ProtectedRoute adminOnly>
+                <UsuarioFormPage />
               </ProtectedRoute>
             }
           />

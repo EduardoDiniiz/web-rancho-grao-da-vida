@@ -1,29 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Power, Wifi, WifiOff, RefreshCw, Settings, Pencil, Clock } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
-import { Modal } from '../../components/common/Modal';
-import { InputField } from '../../components/common/InputField';
 import api from '../../services/api';
 import type { Dispositivo, DispositivosResponse } from '../../types';
 import '../list.css';
 import './DispositivosPage.css';
 
 export function DispositivosPage() {
+  const navigate = useNavigate();
   const [dispositivos, setDispositivos] = useState<Dispositivo[]>([]);
   const [configured, setConfigured] = useState(true);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [pendente, setPendente] = useState<Set<string>>(new Set());
-
-  const [editando, setEditando] = useState<Dispositivo | null>(null);
-  const [novoNome, setNovoNome] = useState('');
-  const [salvando, setSalvando] = useState(false);
-
-  const [agendando, setAgendando] = useState<Dispositivo | null>(null);
-  const [horaLigar, setHoraLigar] = useState('');
-  const [horaDesligar, setHoraDesligar] = useState('');
-  const [agAtivo, setAgAtivo] = useState(true);
-  const [salvandoAg, setSalvandoAg] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -38,57 +28,6 @@ export function DispositivosPage() {
       setErro(err.response?.data?.message ?? 'Erro ao carregar dispositivos.');
     } finally {
       setLoading(false);
-    }
-  }
-
-  function abrirEdicao(d: Dispositivo) {
-    setEditando(d);
-    setNovoNome(d.nome ?? '');
-  }
-
-  async function salvarNome() {
-    if (!editando) return;
-    const nome = novoNome.trim();
-    setSalvando(true);
-    try {
-      await api.put(`/dispositivos/${editando.id}/nome`, { nome });
-      setDispositivos((list) => list.map((x) => (x.id === editando.id ? { ...x, nome } : x)));
-      setEditando(null);
-    } catch (err: any) {
-      alert(err.response?.data?.message ?? 'Nao foi possivel renomear o dispositivo.');
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  function abrirAgendamento(d: Dispositivo) {
-    setAgendando(d);
-    setHoraLigar(d.horaLigar ?? '');
-    setHoraDesligar(d.horaDesligar ?? '');
-    setAgAtivo(d.agendamentoAtivo ?? true);
-  }
-
-  async function salvarAgendamento() {
-    if (!agendando) return;
-    setSalvandoAg(true);
-    try {
-      await api.put(`/dispositivos/${agendando.id}/agendamento`, {
-        horaLigar: horaLigar || null,
-        horaDesligar: horaDesligar || null,
-        ativo: agAtivo,
-      });
-      const temHorario = !!(horaLigar || horaDesligar);
-      setDispositivos((list) => list.map((x) => (x.id === agendando.id ? {
-        ...x,
-        horaLigar: horaLigar || undefined,
-        horaDesligar: horaDesligar || undefined,
-        agendamentoAtivo: temHorario ? agAtivo : undefined,
-      } : x)));
-      setAgendando(null);
-    } catch (err: any) {
-      alert(err.response?.data?.message ?? 'Nao foi possivel salvar o agendamento.');
-    } finally {
-      setSalvandoAg(false);
     }
   }
 
@@ -182,10 +121,12 @@ export function DispositivosPage() {
                 </button>
 
                 <div className="dispositivo-card__actions">
-                  <button type="button" className="dispositivo-card__btn" onClick={() => abrirEdicao(d)}>
+                  <button type="button" className="dispositivo-card__btn"
+                    onClick={() => navigate(`/dispositivos/${d.id}/nome`, { state: { dispositivo: d } })}>
                     <Pencil size={15} /> Editar
                   </button>
-                  <button type="button" className="dispositivo-card__btn" onClick={() => abrirAgendamento(d)}>
+                  <button type="button" className="dispositivo-card__btn"
+                    onClick={() => navigate(`/dispositivos/${d.id}/agendamento`, { state: { dispositivo: d } })}>
                     <Clock size={15} /> Agendar
                   </button>
                 </div>
@@ -194,72 +135,6 @@ export function DispositivosPage() {
           })}
         </div>
       )}
-
-      <Modal
-        open={!!editando}
-        title="Renomear dispositivo"
-        width={420}
-        onClose={() => setEditando(null)}
-        footer={
-          <>
-            <button className="modal__btn modal__btn--cancel" onClick={() => setEditando(null)}>Cancelar</button>
-            <button className="modal__btn modal__btn--save" onClick={salvarNome} disabled={salvando}>
-              {salvando ? 'Salvando...' : 'Salvar'}
-            </button>
-          </>
-        }
-      >
-        <InputField
-          label="Nome do dispositivo"
-          value={novoNome}
-          autoFocus
-          maxLength={255}
-          placeholder="Ex: Luz da Baia 1"
-          onChange={(e) => setNovoNome(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') salvarNome(); }}
-        />
-        <p className="dispositivo-edit-hint">Deixe em branco para voltar ao nome original do Smart Life.</p>
-      </Modal>
-
-      <Modal
-        open={!!agendando}
-        title="Agendar liga/desliga"
-        width={420}
-        onClose={() => setAgendando(null)}
-        footer={
-          <>
-            <button className="modal__btn modal__btn--cancel" onClick={() => setAgendando(null)}>Cancelar</button>
-            <button className="modal__btn modal__btn--save" onClick={salvarAgendamento} disabled={salvandoAg}>
-              {salvandoAg ? 'Salvando...' : 'Salvar'}
-            </button>
-          </>
-        }
-      >
-        <p className="dispositivo-edit-hint" style={{ marginTop: 0, marginBottom: 12 }}>
-          {agendando?.nome} — repete <strong>todos os dias</strong>.
-        </p>
-        <div className="dispositivo-ag-row">
-          <InputField
-            label="Ligar às"
-            type="time"
-            value={horaLigar}
-            onChange={(e) => setHoraLigar(e.target.value)}
-          />
-          <InputField
-            label="Desligar às"
-            type="time"
-            value={horaDesligar}
-            onChange={(e) => setHoraDesligar(e.target.value)}
-          />
-        </div>
-        <label className="dispositivo-ag-ativo">
-          <input type="checkbox" checked={agAtivo} onChange={(e) => setAgAtivo(e.target.checked)} />
-          Agendamento ativo
-        </label>
-        <p className="dispositivo-edit-hint">
-          Deixe um horário em branco para não disparar aquela ação. Sem nenhum horário, o agendamento é removido.
-        </p>
-      </Modal>
     </div>
   );
 }

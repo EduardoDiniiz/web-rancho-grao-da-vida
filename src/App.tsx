@@ -4,8 +4,13 @@ import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/login/LoginPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { ClientesPage } from './pages/clientes/ClientesPage';
+import { ClienteFormPage } from './pages/clientes/ClienteFormPage';
 import { AnimaisPage } from './pages/animais/AnimaisPage';
+import { AnimalFormPage } from './pages/animais/AnimalFormPage';
 import { AnimalDetailPage } from './pages/animais/AnimalDetailPage';
+import { VacinaFormPage } from './pages/animais/VacinaFormPage';
+import { ContratoFormPage } from './pages/animais/ContratoFormPage';
+import { ExameFormPage } from './pages/animais/ExameFormPage';
 import { BaiasPage } from './pages/baias/BaiasPage';
 import { HospedagensPage } from './pages/hospedagens/HospedagensPage';
 import { ServicosPage } from './pages/servicos/ServicosPage';
@@ -37,7 +42,14 @@ export default function App() {
         >
           <Route path="/" element={<DashboardPage />} />
           <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/clientes/novo" element={<ClienteFormPage />} />
+          <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
           <Route path="/animais" element={<AnimaisPage />} />
+          <Route path="/animais/novo" element={<AnimalFormPage />} />
+          <Route path="/animais/:id/editar" element={<AnimalFormPage />} />
+          <Route path="/animais/:id/vacinas/nova" element={<VacinaFormPage />} />
+          <Route path="/animais/:id/contratos/novo" element={<ContratoFormPage />} />
+          <Route path="/animais/:id/exames/novo" element={<ExameFormPage />} />
           <Route path="/animais/:id" element={<AnimalDetailPage />} />
           <Route path="/baias" element={<BaiasPage />} />
           <Route path="/hospedagens" element={<HospedagensPage />} />

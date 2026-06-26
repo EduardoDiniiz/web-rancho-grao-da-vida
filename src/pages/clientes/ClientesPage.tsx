@@ -1,20 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Badge } from '../../components/common/Badge';
-import { Modal } from '../../components/common/Modal';
-import { InputField, TextareaField } from '../../components/common/InputField';
-import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
 import type { Cliente, PageResponse } from '../../types';
-import { maskCpfCnpj, maskPhone, onlyDigits } from '../../utils/masks';
+import { onlyDigits } from '../../utils/masks';
 import { formatCpfCnpj, formatPhone } from '../../utils/format';
 import { WhatsAppIcon } from '../../components/icons/WhatsAppIcon';
-import { required, validateCpfCnpj, validateEmail, validatePhone, fieldErrorsFromApi } from '../../utils/validators';
 import '../list.css';
-
-const EMPTY = { nome: '', cpfCnpj: '', telefone: '', email: '', endereco: '', observacoes: '' };
-type Errors = Partial<Record<keyof typeof EMPTY, string>>;
 
 // Monta o número para o link wa.me; adiciona o DDI 55 quando não houver código do país.
 function waNumber(telefone: string): string {
@@ -24,18 +18,13 @@ function waNumber(telefone: string): string {
 
 export function ClientesPage() {
   const isAdmin = localStorage.getItem('rancho_role') === 'ADMIN';
+  const navigate = useNavigate();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState(EMPTY);
-  const [errors, setErrors] = useState<Errors>({});
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => { load(); }, [page, search]);
 
@@ -50,54 +39,6 @@ export function ClientesPage() {
       setTotalElements(res.data.totalElements);
     } finally {
       setLoading(false);
-    }
-  }
-
-  function openCreate() {
-    setEditingId(null);
-    setForm(EMPTY);
-    setErrors({});
-    setModalOpen(true);
-  }
-
-  function openEdit(c: Cliente) {
-    setEditingId(c.id);
-    setForm({
-      nome: c.nome, cpfCnpj: maskCpfCnpj(c.cpfCnpj ?? ''), telefone: maskPhone(c.telefone ?? ''),
-      email: c.email ?? '', endereco: c.endereco ?? '', observacoes: c.observacoes ?? '',
-    });
-    setErrors({});
-    setModalOpen(true);
-  }
-
-  function validate(): boolean {
-    const e: Errors = {
-      nome: required(form.nome, 'Nome'),
-      cpfCnpj: validateCpfCnpj(form.cpfCnpj),
-      telefone: validatePhone(form.telefone),
-      email: validateEmail(form.email),
-    };
-    Object.keys(e).forEach((k) => e[k as keyof Errors] === undefined && delete e[k as keyof Errors]);
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  async function save() {
-    if (!validate()) return;
-    setSaving(true);
-    try {
-      // CPF/CNPJ e telefone trafegam e sao persistidos apenas com digitos
-      const payload = { ...form, cpfCnpj: onlyDigits(form.cpfCnpj), telefone: onlyDigits(form.telefone) };
-      if (editingId) await api.put(`/clientes/${editingId}`, payload);
-      else await api.post('/clientes', payload);
-      setModalOpen(false);
-      load();
-    } catch (err: any) {
-      const apiErrors = fieldErrorsFromApi(err);
-      if (Object.keys(apiErrors).length) setErrors(apiErrors);
-      else alert(err.response?.data?.message ?? 'Erro ao salvar cliente.');
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -131,7 +72,7 @@ export function ClientesPage() {
               <WhatsAppIcon size={14} /> WhatsApp
             </a>
           )}
-          <button className="btn-sm" onClick={() => openEdit(c)}>Editar</button>
+          <button className="btn-sm" onClick={() => navigate(`/clientes/${c.id}/editar`)}>Editar</button>
           {isAdmin && <button className="btn-sm btn-sm--danger" onClick={() => remove(c)}>Excluir</button>}
         </div>
       ),
@@ -141,7 +82,7 @@ export function ClientesPage() {
   return (
     <div>
       <PageHeader title="Clientes" subtitle={`${totalElements} registros`}
-        action={{ label: 'Novo Cliente', onClick: openCreate }} />
+        action={{ label: 'Novo Cliente', onClick: () => navigate('/clientes/novo') }} />
 
       <div className="list-toolbar">
         <input className="list-search" placeholder="Buscar por nome, CPF/CNPJ ou telefone..."
@@ -160,31 +101,6 @@ export function ClientesPage() {
           )}
         </>
       )}
-
-      <Modal open={modalOpen} title={editingId ? 'Editar Cliente' : 'Novo Cliente'} onClose={() => setModalOpen(false)}
-        footer={
-          <>
-            <button className="modal__btn modal__btn--cancel" onClick={() => setModalOpen(false)}>Cancelar</button>
-            <button className="modal__btn modal__btn--save" onClick={save} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
-            </button>
-          </>
-        }>
-        <InputField label="Nome *" value={form.nome} error={errors.nome}
-          onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-        <FormRow>
-          <InputField label="CPF/CNPJ" value={form.cpfCnpj} error={errors.cpfCnpj} inputMode="numeric"
-            placeholder="000.000.000-00" maxLength={18}
-            onChange={(e) => setForm({ ...form, cpfCnpj: maskCpfCnpj(e.target.value) })} />
-          <InputField label="Telefone" value={form.telefone} error={errors.telefone} inputMode="numeric"
-            placeholder="(00) 00000-0000" maxLength={15}
-            onChange={(e) => setForm({ ...form, telefone: maskPhone(e.target.value) })} />
-        </FormRow>
-        <InputField label="E-mail" type="email" value={form.email} error={errors.email}
-          placeholder="email@exemplo.com" onChange={(e) => setForm({ ...form, email: e.target.value })} />
-        <InputField label="Endereço" value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} />
-        <TextareaField label="Observações" value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} />
-      </Modal>
     </div>
   );
 }

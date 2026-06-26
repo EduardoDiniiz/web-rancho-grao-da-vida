@@ -69,6 +69,17 @@ export interface Vacina {
   situacao: 'EM_DIA' | 'PROXIMA' | 'VENCIDA';
 }
 
+export interface Exame {
+  id: number;
+  animalId: number;
+  animalNome: string;
+  nome: string;
+  data: string;
+  resultado?: string;
+  veterinario?: string;
+  observacao?: string;
+}
+
 export type BaiaStatus = 'LIVRE' | 'OCUPADA' | 'MANUTENCAO';
 
 export interface Baia {

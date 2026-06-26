@@ -2,20 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Badge, type BadgeVariant } from '../../components/common/Badge';
-import { Modal } from '../../components/common/Modal';
-import { InputField, TextareaField } from '../../components/common/InputField';
-import { FormRow } from '../../components/common/FormCard';
 import api from '../../services/api';
-import type { Animal, AnimalServico, Servico, Vacina, PageResponse } from '../../types';
+import type { Animal, AnimalServico, Vacina, Exame } from '../../types';
 import { formatCurrency, formatDate, label } from '../../utils/format';
-import { required, validatePositiveCurrency, fieldErrorsFromApi } from '../../utils/validators';
-import { maskCurrency, currencyToMask, parseCurrency } from '../../utils/masks';
 import { ChevronLeft } from 'lucide-react';
 import './AnimalDetailPage.css';
-
-const TODAY = new Date().toISOString().slice(0, 10);
-type VacinaErrors = Partial<Record<'nome' | 'dataAplicacao' | 'dataVencimento', string>>;
-type ContratoErrors = Partial<Record<'servicoNome' | 'valor' | 'dataInicio' | 'recorrenciaDias', string>>;
 
 const vacinaVariant: Record<string, BadgeVariant> = { EM_DIA: 'success', PROXIMA: 'warning', VENCIDA: 'error' };
 const contratoVariant: Record<string, BadgeVariant> = { ATIVO: 'success', SUSPENSO: 'warning', ENCERRADO: 'neutral' };
@@ -26,34 +17,24 @@ export function AnimalDetailPage() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [vacinas, setVacinas] = useState<Vacina[]>([]);
   const [contratos, setContratos] = useState<AnimalServico[]>([]);
-  const [servicos, setServicos] = useState<Servico[]>([]);
+  const [exames, setExames] = useState<Exame[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [vacinaModal, setVacinaModal] = useState(false);
-  const [vacinaForm, setVacinaForm] = useState({ nome: '', dataAplicacao: '', dataVencimento: '', observacao: '' });
-  const [vacinaErrors, setVacinaErrors] = useState<VacinaErrors>({});
-
-  const [contratoModal, setContratoModal] = useState(false);
-  const [contratoForm, setContratoForm] = useState({ servicoNome: '', valor: '', dataInicio: '', recorrenciaDias: '30', descricao: '' });
-  const [contratoErrors, setContratoErrors] = useState<ContratoErrors>({});
-
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => { loadAll(); }, [id]);
 
   async function loadAll() {
     setLoading(true);
     try {
-      const [a, v, c, s] = await Promise.all([
+      const [a, v, c, e] = await Promise.all([
         api.get<Animal>(`/animais/${id}`),
         api.get<Vacina[]>(`/vacinas/animal/${id}`),
         api.get<AnimalServico[]>(`/animal-servicos/animal/${id}`),
-        api.get<PageResponse<Servico>>('/servicos', { params: { apenasAtivos: true, size: 200 } }),
+        api.get<Exame[]>(`/exames/animal/${id}`),
       ]);
       setAnimal(a.data);
       setVacinas(v.data);
       setContratos(c.data);
-      setServicos(s.data.content);
+      setExames(e.data);
     } finally {
       setLoading(false);
     }
@@ -66,94 +47,16 @@ export function AnimalDetailPage() {
     loadAll();
   }
 
-  function validateVacina(): boolean {
-    const e: VacinaErrors = {
-      nome: required(vacinaForm.nome, 'Nome'),
-      dataAplicacao: required(vacinaForm.dataAplicacao, 'Data de aplicação')
-        ?? (vacinaForm.dataAplicacao > TODAY ? 'Data de aplicação não pode ser futura.' : undefined),
-      dataVencimento: vacinaForm.dataVencimento && vacinaForm.dataAplicacao && vacinaForm.dataVencimento < vacinaForm.dataAplicacao
-        ? 'Vencimento deve ser após a aplicação.' : undefined,
-    };
-    Object.keys(e).forEach((k) => e[k as keyof VacinaErrors] === undefined && delete e[k as keyof VacinaErrors]);
-    setVacinaErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  async function saveVacina() {
-    if (!validateVacina()) return;
-    setSaving(true);
-    try {
-      await api.post('/vacinas', {
-        animalId: Number(id), nome: vacinaForm.nome,
-        dataAplicacao: vacinaForm.dataAplicacao,
-        dataVencimento: vacinaForm.dataVencimento || null,
-        observacao: vacinaForm.observacao || null,
-      });
-      setVacinaModal(false);
-      setVacinaForm({ nome: '', dataAplicacao: '', dataVencimento: '', observacao: '' });
-      setVacinaErrors({});
-      loadAll();
-    } catch (err: any) {
-      const apiErrors = fieldErrorsFromApi(err);
-      if (Object.keys(apiErrors).length) setVacinaErrors(apiErrors);
-      else alert(err.response?.data?.message ?? 'Erro ao registrar vacina.');
-    } finally { setSaving(false); }
-  }
-
   async function removeVacina(v: Vacina) {
     if (!window.confirm(`Remover a vacina "${v.nome}"?`)) return;
     await api.delete(`/vacinas/${v.id}`);
     loadAll();
   }
 
-  function openContrato() {
-    setContratoForm({ servicoNome: '', valor: '', dataInicio: new Date().toISOString().slice(0, 10), recorrenciaDias: '30', descricao: '' });
-    setContratoErrors({});
-    setContratoModal(true);
-  }
-
-  // Campo aberto: ao digitar um serviço já existente no catálogo, sugere o valor
-  // padrão (apenas se o valor ainda estiver em branco, sem sobrescrever o usuário).
-  function onServicoNomeChange(servicoNome: string) {
-    const s = servicos.find((x) => x.nome.toLowerCase() === servicoNome.trim().toLowerCase());
-    setContratoForm((f) => ({
-      ...f,
-      servicoNome,
-      valor: s && !f.valor ? currencyToMask(s.valorPadrao) : f.valor,
-    }));
-  }
-
-  function validateContrato(): boolean {
-    const e: ContratoErrors = {
-      servicoNome: required(contratoForm.servicoNome, 'Serviço'),
-      valor: validatePositiveCurrency(contratoForm.valor, 'Valor'),
-      dataInicio: required(contratoForm.dataInicio, 'Data de início'),
-      recorrenciaDias: Number(contratoForm.recorrenciaDias) >= 1 ? undefined : 'Recorrência mínima é 1 dia.',
-    };
-    Object.keys(e).forEach((k) => e[k as keyof ContratoErrors] === undefined && delete e[k as keyof ContratoErrors]);
-    setContratoErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  async function saveContrato() {
-    if (!validateContrato()) return;
-    setSaving(true);
-    try {
-      await api.post('/animal-servicos', {
-        animalId: Number(id),
-        servicoNome: contratoForm.servicoNome.trim(),
-        valor: parseCurrency(contratoForm.valor),
-        dataInicio: contratoForm.dataInicio,
-        recorrenciaDias: Number(contratoForm.recorrenciaDias),
-        descricao: contratoForm.descricao || null,
-      });
-      setContratoModal(false);
-      loadAll();
-    } catch (err: any) {
-      const apiErrors = fieldErrorsFromApi(err);
-      if (Object.keys(apiErrors).length) setContratoErrors(apiErrors);
-      else alert(err.response?.data?.message ?? 'Erro ao contratar serviço.');
-    } finally { setSaving(false); }
+  async function removeExame(e: Exame) {
+    if (!window.confirm(`Remover o exame "${e.nome}"?`)) return;
+    await api.delete(`/exames/${e.id}`);
+    loadAll();
   }
 
   async function changeContratoStatus(c: AnimalServico, status: string) {
@@ -185,7 +88,7 @@ export function AnimalDetailPage() {
       {/* ===== SERVIÇOS CONTRATADOS ===== */}
       <div className="detail__section-header">
         <h2>Serviços Contratados</h2>
-        <button className="btn-sm btn-sm--primary" onClick={openContrato}>+ Contratar Serviço</button>
+        <button className="btn-sm btn-sm--primary" onClick={() => navigate(`/animais/${id}/contratos/novo`)}>+ Contratar Serviço</button>
       </div>
       {contratos.length === 0 ? (
         <div className="detail__empty">Nenhum serviço contratado.</div>
@@ -218,7 +121,7 @@ export function AnimalDetailPage() {
       {/* ===== VACINAS ===== */}
       <div className="detail__section-header">
         <h2>Vacinas</h2>
-        <button className="btn-sm btn-sm--primary" onClick={() => setVacinaModal(true)}>+ Registrar Vacina</button>
+        <button className="btn-sm btn-sm--primary" onClick={() => navigate(`/animais/${id}/vacinas/nova`)}>+ Registrar Vacina</button>
       </div>
       {vacinas.length === 0 ? (
         <div className="detail__empty">Nenhuma vacina registrada.</div>
@@ -240,55 +143,30 @@ export function AnimalDetailPage() {
         </div>
       )}
 
-      {/* ===== MODAL VACINA ===== */}
-      <Modal open={vacinaModal} title="Registrar Vacina" onClose={() => setVacinaModal(false)}
-        footer={
-          <>
-            <button className="modal__btn modal__btn--cancel" onClick={() => setVacinaModal(false)}>Cancelar</button>
-            <button className="modal__btn modal__btn--save" onClick={saveVacina} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
-            </button>
-          </>
-        }>
-        <InputField label="Nome da vacina *" value={vacinaForm.nome} error={vacinaErrors.nome}
-          onChange={(e) => setVacinaForm({ ...vacinaForm, nome: e.target.value })} />
-        <FormRow>
-          <InputField label="Data de aplicação *" type="date" value={vacinaForm.dataAplicacao} max={TODAY} error={vacinaErrors.dataAplicacao}
-            onChange={(e) => setVacinaForm({ ...vacinaForm, dataAplicacao: e.target.value })} />
-          <InputField label="Data de vencimento" type="date" value={vacinaForm.dataVencimento} error={vacinaErrors.dataVencimento}
-            onChange={(e) => setVacinaForm({ ...vacinaForm, dataVencimento: e.target.value })} />
-        </FormRow>
-        <TextareaField label="Observação" value={vacinaForm.observacao}
-          onChange={(e) => setVacinaForm({ ...vacinaForm, observacao: e.target.value })} />
-      </Modal>
-
-      {/* ===== MODAL CONTRATO ===== */}
-      <Modal open={contratoModal} title="Contratar Serviço" onClose={() => setContratoModal(false)}
-        footer={
-          <>
-            <button className="modal__btn modal__btn--cancel" onClick={() => setContratoModal(false)}>Cancelar</button>
-            <button className="modal__btn modal__btn--save" onClick={saveContrato} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
-            </button>
-          </>
-        }>
-        <InputField label="Serviço *" value={contratoForm.servicoNome} error={contratoErrors.servicoNome}
-          list="servicos-sugestoes" placeholder="Digite o serviço"
-          onChange={(e) => onServicoNomeChange(e.target.value)} />
-        <datalist id="servicos-sugestoes">
-          {servicos.map((s) => <option key={s.id} value={s.nome} />)}
-        </datalist>
-        <FormRow>
-          <InputField label="Valor (R$) *" inputMode="numeric" placeholder="0,00" value={contratoForm.valor} error={contratoErrors.valor}
-            onChange={(e) => setContratoForm({ ...contratoForm, valor: maskCurrency(e.target.value) })} />
-          <InputField label="Recorrência (dias) *" type="number" min={1} value={contratoForm.recorrenciaDias} error={contratoErrors.recorrenciaDias}
-            onChange={(e) => setContratoForm({ ...contratoForm, recorrenciaDias: e.target.value })} />
-        </FormRow>
-        <InputField label="Data de início *" type="date" value={contratoForm.dataInicio} error={contratoErrors.dataInicio}
-          onChange={(e) => setContratoForm({ ...contratoForm, dataInicio: e.target.value })} />
-        <TextareaField label="Descrição adicional" value={contratoForm.descricao}
-          onChange={(e) => setContratoForm({ ...contratoForm, descricao: e.target.value })} />
-      </Modal>
+      {/* ===== EXAMES ===== */}
+      <div className="detail__section-header">
+        <h2>Exames</h2>
+        <button className="btn-sm btn-sm--primary" onClick={() => navigate(`/animais/${id}/exames/novo`)}>+ Registrar Exame</button>
+      </div>
+      {exames.length === 0 ? (
+        <div className="detail__empty">Nenhum exame registrado.</div>
+      ) : (
+        <div className="detail__list">
+          {exames.map((e) => (
+            <div key={e.id} className="detail__item">
+              <div className="detail__item-main">
+                <strong>{e.nome}</strong>
+                <span>Data: {formatDate(e.data)}{e.veterinario ? ` · Vet.: ${e.veterinario}` : ''}</span>
+                {e.resultado && <span className="detail__muted">Resultado: {e.resultado}</span>}
+                {e.observacao && <span className="detail__muted">{e.observacao}</span>}
+              </div>
+              <div className="detail__item-side">
+                <button className="btn-sm btn-sm--danger" onClick={() => removeExame(e)}>Remover</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
